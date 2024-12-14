@@ -72,7 +72,7 @@ public class CreateQr extends AppCompatActivity {
                     }
                 } else {
                     // Jika EditText kosong, tampilkan TextView dan sembunyikan ImageView
-                    tv1.setText("Asupkeun Heula Teks/Link-na");
+                    tv1.setText("Masukan teks atau link");
                     tv1.setVisibility(View.VISIBLE);
                     ivQrCode.setVisibility(View.GONE);
 
