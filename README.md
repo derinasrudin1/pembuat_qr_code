@@ -39,7 +39,7 @@ Aplikasi **Pembuat dan Scan QR Code** memungkinkan pengguna untuk membuat serta 
 ## 🛠️ **Teknologi yang Digunakan**
 
 - **Android Studio** sebagai IDE.
-- **Kotlin** atau **Java** sebagai bahasa pemrograman utama.
+- **Java** sebagai bahasa pemrograman utama.
 - **ZXing Library** untuk pemrosesan QR Code.
 
 ---
