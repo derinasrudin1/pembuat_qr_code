@@ -26,12 +26,13 @@ Aplikasi **Pembuat dan Scan QR Code** memungkinkan pengguna untuk membuat serta 
 ---
 
 ## 📷 **Screenshot**
-
+<div style="display: flex; justify-content: space-around; align-items: center;">
 <img src="screenshot/Home.jpg" width="200">
 <img src="screenshot/Generate_QR.jpg" width="200">
 <img src="screenshot/Hasil_Scan.jpg" width="200">
 <img src="screenshot/Android_Tema_Gelap.jpg" width="200">
 <img src="screenshot/Hasil_Scan_url_tema_gelap.jpg" width="200">
+</div>
 
 ---
 
