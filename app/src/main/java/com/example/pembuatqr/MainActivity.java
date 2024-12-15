@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // Intent untuk membuka URL Tentang
-                String url = "https://github.com/derinasrudin1/pembuat_qr_code.git";
+                String url = "https://wa.me/6289687598053";
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(Uri.parse(url));
                 startActivity(intent);
