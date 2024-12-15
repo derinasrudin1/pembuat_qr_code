@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="16dp">
 
 
     <TextView
@@ -26,22 +27,25 @@
 
     <Button
         android:id="@+id/btnCreate"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
         android:backgroundTint="@color/green"
+        android:drawableLeft="@drawable/buat"
         android:text="Buat QR"
-        android:textColor="@color/white" />
+        android:textColor="@color/white"
+        android:layout_gravity="center"/>
 
     <Button
         android:id="@+id/btnDownloadQrCode"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-
         android:backgroundTint="@color/blue"
+        android:drawableLeft="@drawable/download"
         android:text="Download"
         android:textColor="@color/white"
+        android:layout_gravity="center"
         />
 
     <ImageView

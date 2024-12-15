@@ -6,66 +6,77 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.WriterException;
-import com.google.zxing.common.BitMatrix;
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.ChecksumException;
+import com.google.zxing.DecodeHintType;
+import com.google.zxing.FormatException;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.Result;
+import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.multi.qrcode.QRCodeMultiReader;
+import com.google.zxing.qrcode.QRCodeReader;
+import com.google.zxing.qrcode.decoder.QRCodeDecoderMetaData;
+//import com.journeyapps.barcodescanner.BarcodeFormat;
 import com.journeyapps.barcodescanner.BarcodeEncoder;
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
 
-import java.util.Scanner;
+import java.io.IOException;
+import java.util.Hashtable;
 
 public class MainActivity extends AppCompatActivity {
-    private Button btnCreate, btnScan;
-
-
+    private Button btnCreate, btnScan, btnScanFromGallery;
+    private TextView tvAboutMe;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
         btnCreate = findViewById(R.id.btnCreate);
         btnScan = findViewById(R.id.btnScan);
+        btnScanFromGallery = findViewById(R.id.btnScanFromGallery);
+        tvAboutMe =  findViewById(R.id.tvAboutMe);
 
-        btnCreate.setOnClickListener(new View.OnClickListener() {
+        tvAboutMe.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, CreateQr.class);
+                // Intent untuk membuka URL Tentang
+                String url = "https://github.com/derinasrudin1/pembuat_qr_code.git";
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(url));
                 startActivity(intent);
             }
         });
 
-        btnScan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Scanner();
-            }
+
+        btnCreate.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, CreateQr.class);
+            startActivity(intent);
         });
 
+        btnScan.setOnClickListener(v -> Scanner());
+
+        btnScanFromGallery.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_PICK);
+            intent.setType("image/*");
+            galleryLauncher.launch(intent);
+        });
     }
-    private void Scanner(){
-        ScanOptions options= new ScanOptions();
-        options.setPrompt("Volume Up to Flash On");
+
+    private void Scanner() {
+        ScanOptions options = new ScanOptions();
+        options.setPrompt("Arahkan kamera ke QR Code");
         options.setBeepEnabled(false);
         options.setOrientationLocked(true);
         options.setCaptureActivity(StarScan.class);
@@ -76,53 +87,103 @@ public class MainActivity extends AppCompatActivity {
         if (result.getContents() != null) {
             String scannedResult = result.getContents();
 
-            // Deteksi apakah hasil scan merupakan URL, dengan atau tanpa "http://" atau "https://"
             if (isValidUrl(scannedResult)) {
-                // Jika hasil scan tidak memiliki "http://" atau "https://", tambahkan "http://"
-                String finalScannedResult = scannedResult; // Buat variabel baru untuk menyimpan hasil akhir
-                if (!scannedResult.startsWith("http://") && !scannedResult.startsWith("https://")) {
-                    finalScannedResult = "http://" + scannedResult;
-                }
+                String finalScannedResult = scannedResult.startsWith("http://") || scannedResult.startsWith("https://")
+                        ? scannedResult
+                        : "http://" + scannedResult;
 
-                // Tampilkan dialog dengan opsi untuk membuka di browser
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                String finalScannedResultCopy = finalScannedResult; // Jadikan variabel final atau effectively final
-                builder.setTitle("Result")
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Result")
                         .setMessage("Scanned URL: " + finalScannedResult)
-                        .setPositiveButton("Open in Browser", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                // Intent untuk membuka URL di browser
-                                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(finalScannedResultCopy));
-                                startActivity(browserIntent);
-                            }
+                        .setPositiveButton("Open in Browser", (dialogInterface, i) -> {
+                            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(finalScannedResult));
+                            startActivity(browserIntent);
                         })
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                dialogInterface.dismiss();
-                            }
-                        })
+                        .setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.dismiss())
                         .show();
             } else {
-                // Jika hasil scan bukan URL, tampilkan dalam dialog biasa
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setTitle("Result");
-                builder.setMessage(scannedResult);
-                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        dialogInterface.dismiss();
-                    }
-                }).show();
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Result")
+                        .setMessage(scannedResult)
+                        .setPositiveButton("OK", (dialogInterface, i) -> dialogInterface.dismiss())
+                        .setNeutralButton("Copy", (dialogInterface, i) -> {
+                            // Salin teks ke clipboard
+                            android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                            android.content.ClipData clip = android.content.ClipData.newPlainText("Scanned Text", scannedResult);
+                            clipboard.setPrimaryClip(clip);
+
+                            // Tampilkan toast sebagai konfirmasi
+                            Toast.makeText(MainActivity.this, "Text copied to clipboard!", Toast.LENGTH_SHORT).show();
+                        })
+                        .show();
             }
         }
     });
 
-    // Fungsi untuk memeriksa apakah string merupakan URL yang valid
+    ActivityResultLauncher<Intent> galleryLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Uri selectedImage = result.getData().getData();
+                    try {
+                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
+                        String decodedText = decodeQrCodeFromBitmap(bitmap);
+
+                        if (decodedText != null) {
+                            if (isValidUrl(decodedText)) {
+                                String finalScannedResult = decodedText.startsWith("http://") || decodedText.startsWith("https://")
+                                        ? decodedText
+                                        : "http://" + decodedText;
+
+                                new AlertDialog.Builder(MainActivity.this)
+                                        .setTitle("Result")
+                                        .setMessage("Scanned URL: " + finalScannedResult)
+                                        .setPositiveButton("Open in Browser", (dialogInterface, i) -> {
+                                            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(finalScannedResult));
+                                            startActivity(browserIntent);
+                                        })
+                                        .setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.dismiss())
+                                        .show();
+                            } else {
+                                new AlertDialog.Builder(MainActivity.this)
+                                        .setTitle("Result")
+                                        .setMessage(decodedText)
+                                        .setPositiveButton("OK", (dialogInterface, i) -> dialogInterface.dismiss())
+                                        .setNeutralButton("Copy", (dialogInterface, i) -> {
+                                            // Salin teks ke clipboard
+                                            android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                                            android.content.ClipData clip = android.content.ClipData.newPlainText("Scanned Text", decodedText);
+                                            clipboard.setPrimaryClip(clip);
+
+                                            // Tampilkan toast sebagai konfirmasi
+                                            Toast.makeText(MainActivity.this, "Text copied to clipboard!", Toast.LENGTH_SHORT).show();
+                                        })
+                                        .show();
+                            }
+                        } else {
+                            Toast.makeText(MainActivity.this, "No QR Code found in the image", Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Toast.makeText(MainActivity.this, "Failed to load image", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+    private String decodeQrCodeFromBitmap(Bitmap bitmap) {
+        try {
+            int[] intArray = new int[bitmap.getWidth() * bitmap.getHeight()];
+            bitmap.getPixels(intArray, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
+            com.google.zxing.RGBLuminanceSource source = new com.google.zxing.RGBLuminanceSource(bitmap.getWidth(), bitmap.getHeight(), intArray);
+            BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
+            Result result = new QRCodeMultiReader().decode(binaryBitmap);
+            return result.getText();
+        } catch (NotFoundException | FormatException | ChecksumException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     private boolean isValidUrl(String text) {
         return text.startsWith("http://") || text.startsWith("https://") || text.startsWith("www.") || text.contains(".com") || text.contains(".co.id") || text.contains(".id") || text.contains(".go.id") || text.contains(".net") || text.contains(".org");
     }
-
-
 }

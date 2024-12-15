@@ -43,6 +43,7 @@ public class CreateQr extends AppCompatActivity {
         ivQrCode = findViewById(R.id.ivQrCode);
         tv1 = findViewById(R.id.tv1);
         btnDownloadQrCode = findViewById(R.id.btnDownloadQrCode);
+        btnDownloadQrCode.setVisibility(View.GONE);
 
 
 
