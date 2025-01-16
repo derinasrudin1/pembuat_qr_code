@@ -35,6 +35,10 @@ Aplikasi **Pembuat dan Scan QR Code** memungkinkan pengguna untuk membuat serta 
 </div>
 
 ---
+## Version
+**v1.0.0**
+- **Download:** [v1.0.0 Release](https://github.com/derinasrudin1/pembuat_qr_code/releases/tag/v1.0.0)
+
 
 ## 🛠️ **Teknologi yang Digunakan**
 
